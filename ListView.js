@@ -43,7 +43,7 @@ define(function(require, exports, module) {
     var ScrollContainer = require('famous/views/ScrollContainer');
     var Utility = require('famous/utilities/Utility');
     var RenderController = require('famous/views/RenderController');
-    var Easing = require('famous/transitions/easing');
+    var Easing = require('famous/transitions/Easing');
 
     /**
      * @class
