@@ -1,0 +1,31 @@
+{
+  "name": "famous-listview",
+  "version": "0.0.1",
+  "homepage": "https://github.com/IjzerenHein/famous-listview",
+  "authors": [
+    "Hein Rutjes <hrutjes@gmail.com>"
+  ],
+  "description": "TODO",
+  "keywords": [
+    "famo.us",
+    "famous",
+    "list",
+    "listview",
+    "scrollview",
+    "scrollcontainer"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "tests",
+    "examples",
+    "docs",
+    "Gruntfile.js"
+  ],
+  "dependencies": {
+    "requirejs": "~2.1.11",
+    "famous": "~0.2.0"
+  }
+}
