@@ -36,10 +36,12 @@ body, div {
     background-color: white;
     text-align: center;
     color: #BBBBBB;
+    padding: 20px;
 }
 
 .counter {
     text-align: right;
+    padding-right: 20px;
 }
 
 .listitem {

@@ -89,7 +89,7 @@ define(function(require) {
     }
 
     // Create listview
-    var boxLayout = new BoxLayout({margins: [30, 10, 10, 10]});
+    var boxLayout = new BoxLayout({margins: [30, 0, 0, 0]});
     var listView = new ListView({
         scrollContainer: {
             container: {
@@ -117,7 +117,7 @@ define(function(require) {
     // Set listview placeholder (is shown when list-view is empty)
     var placeholder = new Surface({
         classes: ['placeholder'],
-        content: '<div>The ListView is empty</div>'
+        content: '<div>No items.<br><br>Use the options on the left to insert items.<br><br>This placeholder automatically disappears when items are added.</div>'
     });
     listView.placeholder.add(placeholder);
 
@@ -136,7 +136,7 @@ define(function(require) {
         for (var i = 0; i < 10; i++) {
             items.push(_createListItem(name));
         }
-        listView.insert(listView.getCount() / 2, items);
+        listView.insert(Math.floor(listView.getCount() / 2), items);
     });
     _addAction('Remove top', function() {
         listView.remove(0);
