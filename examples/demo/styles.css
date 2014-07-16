@@ -45,12 +45,15 @@ body, div {
 }
 
 .listitem {
-    background-color: #ACB29B;
     text-align: center;
     color: white;
 }
 .listitem:hover {
-    background-color: #313D3C;
+    color: rgba(255, 255, 255, 0.3);
+}
+.listitem.selected {
+    text-shadow: 0px 0px 4px rgba(255, 255, 255, 1);
+    color: white;
 }
 .listitem.first {
     border-top-left-radius: 10px;
@@ -59,6 +62,6 @@ body, div {
 .listitem.last {
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    box-shadow: 0px 2px 5px #AAAAAA;
+    box-shadow: 0px 3px 3px #AAAAAA;
 }
 

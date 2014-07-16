@@ -83,7 +83,7 @@ define(function(require) {
             classes: ['listitem'],
             content: '<div>' + name + '</div>',
             properties: {
-                backgroundColor: Please.make_color()
+                background: Please.make_color()
             }
         });
     }
@@ -91,6 +91,7 @@ define(function(require) {
     // Create listview
     var boxLayout = new BoxLayout({margins: [30, 0, 0, 0]});
     var listView = new ListView({
+        multiSelect: true,
         scrollContainer: {
             container: {
                 properties: {
@@ -150,5 +151,10 @@ define(function(require) {
     _addAction('Remove All', function() {
         listView.remove(0, listView.getCount());
     });
-
+    _addAction('Select All', function() {
+        listView.setSelection(0, -1, true);
+    });
+    _addAction('De-select All', function() {
+        listView.setSelection(0, -1, false);
+    });
 });

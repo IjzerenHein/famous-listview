@@ -64,6 +64,10 @@ define(function(require, exports, module) {
     ListView.prototype.constructor = ListView;
 
     ListView.DEFAULT_OPTIONS = {
+        multiSelect: false,
+        selectedClass: 'selected',
+        firstClass: 'first',
+        lastClass: 'last',
         scrollContainer: {
             scrollview: {
                 direction: Utility.Direction.Y
@@ -77,9 +81,7 @@ define(function(require, exports, module) {
         insertTransition: {duration: 1000, curve: Easing.outExpo},
         removeTransition: {duration: 200, curve: Easing.outExpo},
         showPlaceholderTransition: {duration: 500},
-        hidePlaceholderTransition: {duration: 500},
-        firstClass: 'first',
-        lastClass: 'last',
+        hidePlaceholderTransition: {duration: 500}
     };
 
     function _createScrollContainer() {
@@ -112,17 +114,86 @@ define(function(require, exports, module) {
     }
 
     /**
+     * Fired when a list-item is clicked, sets the selection
+     */
+    function _onClickItem(item) {
+        if (this.options.multiSelect) {
+            this.setSelection(this._items.indexOf(item), 1, !item.selected);
+        } else {
+            this.setSelection(this._items.indexOf(item), 1, true);
+        }
+    }
+
+    /**
      * Shows/hides the placeholder dependent on whether any list-items exist
      */
     function _createItem(renderable) {
         var item = {
             modifier: new StateModifier({}),
-            renderable: renderable
+            renderable: renderable,
+            selected: false
         }
         item.node = new RenderNode(item.modifier);
         item.node.add(renderable);
+        if (item.renderable.on) {
+            item.renderable.on('click', _onClickItem.bind(this, item));
+        }
         return item;
     }
+
+    /**
+     * Set the class for an item.
+     */
+    function _setItemClass(item, cls, add) {
+        if (add) {
+            if (item.renderable.addClass) item.renderable.addClass(cls);
+        } else {
+            if (item.renderable.removeClass) item.renderable.removeClass(cls);
+        }
+    }
+
+    /**
+     * Sets the selected status of an item
+     */
+    ListView.prototype.setSelection = function(index, count, selected) {
+        if (selected === undefined) selected = true;
+        if (count < 0) count = this._items.length - index;
+        for (var i = 0 ; i < count; i++) {
+            var item = this._items[index + i];
+
+            // unselect
+            if (!selected) {
+                if (item.selected) {
+                    item.selected = false;
+                    _setItemClass.call(this, item, this.options.selectedClass, false);
+                }
+
+            // multi-select
+            } else if (this.options.multiSelect){
+                if (!item.selected) {
+                    item.selected = true;
+                    _setItemClass.call(this, item, this.options.selectedClass, true);
+                }
+
+            // single-select
+            } else {
+                for (var j = 0; j < this._items.length; j++) {
+                    var curItem = this._items[j];
+                    if (curItem === item) {
+                        if (!item.selected) {
+                            item.selected = true;
+                            _setItemClass.call(this, item, this.options.selectedClass, true);
+                        }
+                    } else {
+                        if (curItem.selected) {
+                            curItem.selected = false;
+                            _setItemClass.call(this, curItem, this.options.selectedClass, false);
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     /**
      * Get the number of items
@@ -155,20 +226,20 @@ define(function(require, exports, module) {
         // update first-class
         if (index === 0 && this.options.firstClass){
             var newItem = this._items[0];
-            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
+            _setItemClass.call(this, newItem, this.options.firstClass, true);
             if (this._items.length > items.length) {
                 var oldItem = this._items[items.length];
-                if (oldItem.renderable.removeClass) oldItem.renderable.removeClass(this.options.firstClass);
+                _setItemClass.call(this, oldItem, this.options.firstClass, false);
             }
         }
 
         // update last-class
         if ((index === (this._items.length - items.length)) && this.options.lastClass) {
             var newItem = this._items[this._items.length - 1];
-            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+            _setItemClass.call(this, newItem, this.options.lastClass, true);
             if (this._items.length > items.length) {
                 var oldItem = this._items[this._items.length - (items.length + 1)];
-                if (oldItem.renderable.removeClass) oldItem.renderable.removeClass(this.options.lastClass);
+                _setItemClass.call(this, oldItem, this.options.lastClass, false);
             }
         }
 
@@ -255,11 +326,11 @@ define(function(require, exports, module) {
         if (this._items.length > 0) {
             if ((index === 0) && this.options.firstClass){
                 var newItem = this._items[0];
-                if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
+                _setItemClass.call(this, newItem, this.options.firstClass, true);
             }
             if ((index === this._items.length) && this.options.lastClass) {
                 var newItem = this._items[this._items.length - 1];
-                if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+                _setItemClass.call(this, newItem, this.options.lastClass, true);
             }
         }
 
