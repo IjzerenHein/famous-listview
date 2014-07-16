@@ -31,6 +31,7 @@ define(function(require) {
 
     // import dependencies
     var Engine = require('famous/core/Engine');
+    var FastClick = require('famous/inputs/FastClick');
     var RenderNode = require('famous/core/RenderNode');
     var Modifier = require('famous/core/Modifier');
     var Surface = require('famous/core/Surface');
@@ -43,15 +44,21 @@ define(function(require) {
     var mainContext = Engine.createContext();
 
     // create layout
+    var topLayout = new BoxLayout({ margins: [40, 0, 0, 0]});
+    mainContext.add(topLayout);
     var renderables = [];
     var layout = new FlexibleLayout({
         ratios: [true, 1]
     });
     layout.sequenceFrom(renderables);
-    mainContext.add(layout);
+    topLayout.middle.add(layout);
+    topLayout.top.add(new Surface({
+        classes: ['header'],
+        content: '<div>famous-listview demo</div>'
+    }));
 
-    // Create action-panel
-    var panel = new RenderNode(new Modifier({size: [200, undefined]}));
+    // Create left action-panel
+    var panel = new RenderNode(new Modifier({size: [160, undefined]}));
     renderables.push(panel);
     panel.add(new Surface({classes: ['panel']}));
     var panelLayout = new SequentialLayout({
