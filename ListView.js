@@ -251,16 +251,16 @@ define(function(require, exports, module) {
         // remove items
         this._items.splice(index, count);
 
-        // update first-class
-        if (index === 0 && this.options.firstClass){
-            var newItem = this._items[0];
-            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
-        }
-
-        // update last-class
-        if ((index === this._items.length) && this.options.lastClass) {
-            var newItem = this._items[this._items.length - 1];
-            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+        // update first- and last-class
+        if (this._items.length > 0) {
+            if ((index === 0) && this.options.firstClass){
+                var newItem = this._items[0];
+                if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
+            }
+            if ((index === this._items.length) && this.options.lastClass) {
+                var newItem = this._items[this._items.length - 1];
+                if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+            }
         }
 
         // Update placeholder

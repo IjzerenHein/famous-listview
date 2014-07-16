@@ -89,8 +89,16 @@ define(function(require) {
     }
 
     // Create listview
-    var boxLayout = new BoxLayout({margins: [30, 20, 20, 20]});
-    var listView = new ListView();
+    var boxLayout = new BoxLayout({margins: [30, 10, 10, 10]});
+    var listView = new ListView({
+        scrollContainer: {
+            container: {
+                properties: {
+                    padding: '10px'
+                }
+            }
+        }
+    });
     boxLayout.middle.add(listView);
     renderables.push(boxLayout);
 
