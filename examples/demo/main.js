@@ -78,16 +78,14 @@ define(function(require) {
         panelActions.push(action);
     }
     function _createListItem(name) {
-        var listItem = new RenderNode(new Modifier({size: [undefined, 40]}));
-        var surface = new Surface({
+        return new Surface({
+            size: [undefined, 40],
             classes: ['listitem'],
             content: '<div>' + name + '</div>',
             properties: {
                 backgroundColor: Please.make_color()
             }
         });
-        listItem.add(surface);
-        return listItem;
     }
 
     // Create listview
@@ -120,7 +118,7 @@ define(function(require) {
         listView.insert(0, _createListItem(name));
     });
     _addAction('Insert middle', function(name) {
-        listView.insert(listView.getCount() / 2, _createListItem(name));
+        listView.insert(Math.floor(listView.getCount() / 2), _createListItem(name));
     });
     _addAction('Insert bottom', function(name) {
         listView.insert(-1, _createListItem(name));

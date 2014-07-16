@@ -77,7 +77,9 @@ define(function(require, exports, module) {
         insertTransition: {duration: 1000, curve: Easing.outExpo},
         removeTransition: {duration: 200, curve: Easing.outExpo},
         showPlaceholderTransition: {duration: 500},
-        hidePlaceholderTransition: {duration: 500}
+        hidePlaceholderTransition: {duration: 500},
+        firstClass: 'first',
+        lastClass: 'last',
     };
 
     function _createScrollContainer() {
@@ -137,6 +139,7 @@ define(function(require, exports, module) {
         // create items
         var items = [];
         if (renderable instanceof Array) {
+            if (renderable.length === 0) return;
             for (var i = 0; i < renderable.length; i++) {
                 items.push(_createItem.call(this, renderable[i]));
             }
@@ -148,6 +151,26 @@ define(function(require, exports, module) {
         // http://stackoverflow.com/questions/7032550/javascript-insert-an-array-inside-another-array
         if (index < 0) index = this.getCount();
         this._items.splice.apply(this._items, [index, 0].concat(items));
+
+        // update first-class
+        if (index === 0 && this.options.firstClass){
+            var newItem = this._items[0];
+            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
+            if (this._items.length > items.length) {
+                var oldItem = this._items[items.length];
+                if (oldItem.renderable.removeClass) oldItem.renderable.removeClass(this.options.firstClass);
+            }
+        }
+
+        // update last-class
+        if ((index === (this._items.length - items.length)) && this.options.lastClass) {
+            var newItem = this._items[this._items.length - 1];
+            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+            if (this._items.length > items.length) {
+                var oldItem = this._items[this._items.length - (items.length + 1)];
+                if (oldItem.renderable.removeClass) oldItem.renderable.removeClass(this.options.lastClass);
+            }
+        }
 
         // add items to scroll-container
         var nodes = [];
@@ -227,6 +250,18 @@ define(function(require, exports, module) {
 
         // remove items
         this._items.splice(index, count);
+
+        // update first-class
+        if (index === 0 && this.options.firstClass){
+            var newItem = this._items[0];
+            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.firstClass);
+        }
+
+        // update last-class
+        if ((index === this._items.length) && this.options.lastClass) {
+            var newItem = this._items[this._items.length - 1];
+            if (newItem.renderable.addClass) newItem.renderable.addClass(this.options.lastClass);
+        }
 
         // Update placeholder
         _updatePlaceholder.call(this);
