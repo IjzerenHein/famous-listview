@@ -39,6 +39,7 @@ define(function(require) {
     var SequentialLayout = require('famous/views/SequentialLayout');
     var ListView = require('famous-listview');
     var BoxLayout = require('famous-boxlayout');
+    var Utility = require('famous/utilities/Utility');
 
     // create the main context
     var mainContext = Engine.createContext();
@@ -91,7 +92,7 @@ define(function(require) {
     // Create listview
     var boxLayout = new BoxLayout({margins: [30, 0, 0, 0]});
     var listView = new ListView({
-        multiSelect: true,
+        selection: ListView.Selection.MULTIPLE,
         scrollContainer: {
             container: {
                 properties: {
