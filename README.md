@@ -1,7 +1,7 @@
 famous-listview
 ==========
 
-famous-listview is a fully customizable view which extends famo.us ScrollContainer with:
+famous-listview is a fully customizable list-view which extends famo.us ScrollContainer with:
 * insert/remove animations
 * selection state (single / multiple)
 * showing a placeholder when the list is empty
@@ -10,7 +10,7 @@ famous-listview is a fully customizable view which extends famo.us ScrollContain
 if you feel something is missing or not working. Please star this project to
 support it.*
 
-![Screenshot](Screenshot.gif)
+![Screenshot](screenshot.gif)
 
 ## Demo
 
@@ -197,7 +197,7 @@ var listView = new ListView({
 });
 ```
 
-### Inserting views & delegating state-classes
+### Inserting views and delegating state-classes
 
 The list-view inspects the renderable and will call `addClass` and `removeClass`
 only if these methods exist. If you insert a `View`, and you want to delegate the
