@@ -6,6 +6,12 @@ famous-listview is a fully customizable view which extends famo.us ScrollContain
 * selection state (single / multiple)
 * showing a placeholder when the list is empty
 
+*Development on famous-listview is ongoing, drop me an email or submit a request
+if you feel something is missing or not working. Please star this project to
+support it.*
+
+![Screenshot](Screenshot.gif)
+
 ## Demo
 
 [View the demo here](https://rawgit.com/IjzerenHein/famous-listview/master/examples/demo/index.html)
@@ -54,8 +60,16 @@ listView.insert(-1, _createItem('three')); // -1 => appends at tail
 
 ## Documentation
 
-View the [API Reference](docs/ListView.md) for a full overview of all methods
-and all [options.](docs/ListView.md#module_ListView)
+- [Inserting and removing renderables](#inserting-and-removing-renderables)
+- [Emitted events](#emitted-events)
+- [Item selection](#item-selection)
+- [Placeholder to show when list is empty](#placeholder-to-show-when-list-is-empty)
+- [State classes: first, last, selected](#state-classes-first-last-selected)
+- [Inserting views and delegating state-classes](#inserting-views-and-delegating-state-classes)
+- [Vertical orientation](#vertical-orientation)
+- [Setting internal margins](#setting-internal-margins)
+- [API Reference](docs/ListView.md)
+- [Options](docs/ListView.md#module_ListView)
 
 ### Inserting and removing renderables
 
@@ -89,10 +103,9 @@ listView.remove(0, -1, {duration: 0});         // Remove without animation
 listView.remove(0, -1, {duration: 3000}, function() {
 	console.log('yay, the animation has completed');
 });
-
 ```
 
-### Events
+### Emitted events
 
 The following events are emitted by the view:
 
@@ -100,6 +113,7 @@ The following events are emitted by the view:
 listView.on('insert', function (event) {
 	/* when multiple items are inserted at once, insert is only emitted once
 	event: {
+		type,  // event-type: 'insert'
 		index, // index of first inserted item
 		count, // number of items that were inserted
 		target // listView
@@ -111,11 +125,60 @@ listView.on('insert', function (event) {
 listView.on('remove', function (event) {
 	/* when multiple items are removed at once, remove is only emitted once
 	event: {
+		type,  // event-type: 'remove'
 		index, // index of first removed item
 		count, // number of items that were removed
 		target // listView
 	} */
 });
+```
+
+### Item selection
+
+ListView supports 3 selection modes: `Selection.NONE`, `Selection.SINGLE` and
+`Selection.MULTIPLE`. Because the list-view does not inject any own surfaces
+into the render-tree, it utilizes the inserted renderable for capturing the
+`click` event. For selection to function, the renderable must have an
+`.on` function and respond to the `click` event.
+
+By default, the selection-mode is set to **SINGLE**. To change the
+selection-mode use:
+
+```javascript
+var listView = new ListView({
+	selection: ListView.Selection.MULTIPLE
+});
+```
+
+To get the selection use `getSelection`
+
+```javascript
+var renderables = listView.getSelection();    // returns array of renderables
+var indexes = listView.getSelection(true);    // returns array of indexes
+```
+
+To set the selection use `setSelection`:
+
+```javascript
+listView.setSelection(0);                     // selects the first item
+listView.setSelection(0, 1, true);            // equivalent to setSelection(0)
+listView.setSelection(-1);                    // selects the last item
+listView.setSelection(0, 10);                 // selects the first 10 items
+listView.setSelection(0, -1);                 // selects all items
+listView.setSelection(0, 1, false);           // de-selects the first item
+listView.setSelection(0, -1, false);          // de-selects all items
+```
+
+### Placeholder to show when list is empty
+
+You can set a placeholder, which is shown when the list is empty.
+
+```javascript
+var listView = new ListView();
+var noItemsSurface = new Surface({
+	content: 'No items'
+});
+listView.placeholder.add(noItemsSurface)
 ```
 
 ### State classes: first, last, selected
@@ -174,8 +237,9 @@ var listView = new ListView({
 
 ### Setting internal margins
 
-By default, the Scrollview inside the ContainerSurface is filled entirely to
-its parent. To indent the Scrollview, use the following construct:
+By default, the Scrollview inside the ContainerSurface is filled to
+its parent. To set margins between the added items and the parent container,
+use:
 
 ```javascript
 var listView = new ListView({
@@ -191,7 +255,8 @@ var listView = new ListView({
 
 ## Contribute
 
-Feel free to contribute to this project in any way. The easiest way to support this project is by giving it a star.
+Feel free to contribute to this project in any way.
+The easiest way to support this project is by giving it a star.
 
 ## Contact
 - 	@IjzerenHein

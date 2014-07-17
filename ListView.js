@@ -268,6 +268,7 @@ define(function(require, exports, module) {
 
         // emit event
         this._eventOutput.emit('insert', {
+            type: 'insert',
             target: this,
             index: index,
             count: items.length
@@ -333,6 +334,7 @@ define(function(require, exports, module) {
 
         // emit event
         this._eventOutput.emit('remove', {
+            type: 'remove',
             target: this,
             index: index,
             count: count
