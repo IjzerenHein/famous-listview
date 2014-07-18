@@ -47,31 +47,31 @@ var listView = new ListView();
 this.add(listView);
 
 // insert items
-function _createItem(name) {
-    return new Surface({
-        content: name
-    });
-}
-listView.insert(0, _createItem('one'));
-listView.insert(1, _createItem('two'));
-listView.insert(-1, _createItem('three')); // -1 => appends at tail
+listView.insert(0, new Surface({ content: 'one' }));
+listView.insert(1, new Surface({ content: 'two' }));
+listView.insert(-1, new Surface({ content: 'three' }))); // -1 => appends at tail
 
+// handle selection events
+listView.on('selection', function (event){
+	var surface = listView.get(event.select[0]); // get newly selected surface
+	console.log('Surface was clicked: ' + surface.content);
+});
 ```
 
 ## Documentation
 
-- [Inserting and removing renderables](#inserting-and-removing-renderables)
-- [Emitted events](#emitted-events)
-- [Item selection](#item-selection)
+- [Inserting and removing](#inserting-and-removing)
+- [Events](#events)
+- [Selection](#selection)
+- [Views, surfaces and state-delegation](#views-surfaces-and-state-delegation)
+- [Animations](#animations)
 - [Placeholder to show when list is empty](#placeholder-to-show-when-list-is-empty)
-- [State classes: first, last, selected](#state-classes-first-last-selected)
-- [Inserting views and delegating state-classes](#inserting-views-and-delegating-state-classes)
 - [Vertical orientation](#vertical-orientation)
 - [Setting internal margins](#setting-internal-margins)
 - [API Reference](docs/ListView.md)
 - [Options](docs/ListView.md#module_ListView)
 
-### Inserting and removing renderables
+### Inserting and removing
 
 To insert or remove items, use the `insert` and `remove` methods. When `-1` is
 used in combination with the `index` it refers to the last + 1 item. When `-1`
@@ -105,7 +105,7 @@ listView.remove(0, -1, {duration: 3000}, function() {
 });
 ```
 
-### Emitted events
+### Events
 
 The following events are emitted by the view:
 
@@ -119,9 +119,7 @@ listView.on('selection', function (event) {
 		target    // listView
 	} */
 });
-```
 
-```javascript
 listView.on('insert', function (event) {
 	/* when multiple items are inserted at once, insert is only emitted once
 	event: {
@@ -131,9 +129,7 @@ listView.on('insert', function (event) {
 		target    // listView
 	} */
 });
-```
 
-```javascript
 listView.on('remove', function (event) {
 	/* when multiple items are removed at once, remove is only emitted once
 	event: {
@@ -145,7 +141,7 @@ listView.on('remove', function (event) {
 });
 ```
 
-### Item selection
+### Selection
 
 ListView supports 3 selection modes: `Selection.NONE`, `Selection.SINGLE` and
 `Selection.MULTIPLE`. Because the list-view does not inject any own surfaces
@@ -181,58 +177,80 @@ listView.setSelection(0, 1, false);           // de-selects the first item
 listView.setSelection(0, -1, false);          // de-selects all items
 ```
 
+### Views, surfaces and state-delegation
+
+Any renderable can be inserted into the list-view. When a `Surface` is added,
+the list-view automatically adds and removes the following classes: `first`,
+`last` and `selected`. This makes it possible to render the `Surface`
+differently based on its state (e.g. add rounded corners). This is the default
+behavior of the list-view and is performed by the `ListView.setSurfaceClass`
+function which calls `addClass` and `removeClass` on the renderable.
+
+When using Views instead of Surfaces, you can specify a custom function
+`options.setItemState` for delegating the state to the view (e.g. for
+rendering the view differently when it is selected).
+
+```javascript
+
+// delegate selection-change to the view
+function _setViewState(index, view, state, set) {
+	if (state === ListView.ItemState.SELECTED) {
+		view.setSelected(set);
+	}
+}
+listView = new ListView({
+	setItemState: _setViewState
+});
+
+// insert view (view has method: setSelected)
+listView.insert(0, new MyView());
+```
+### Animations
+
+The insert and delete animations can be configured using the options:
+
+```javascript
+var listView = new ListView({
+	insertSize: [undefined, 0],                                // start of size when inserting
+	removeSize: [undefined, 0]                                 // end of size when removing
+	insertOpacity: 0,                                          // start of the opacity when inserting
+	removeOpacity: 0,                                          // end of the opacity when removing
+	showOpacity: 1,                                            // opacity after insert
+	insertTransform: Transform.translate(300, 0, 0),           // start transform when inserting
+	removeTransform: Transform.translate(-300, 0, 0)           // end transform when removing
+	insertTransition: {duration: 1000, curve: Easing.outExpo}, // insert-transition
+	removeTransition: {duration: 200, curve: Easing.outExpo}   // remove-transition
+};
+```
+
 ### Placeholder to show when list is empty
 
 You can set a placeholder, which is shown when the list is empty.
 
 ```javascript
 var listView = new ListView();
-var noItemsSurface = new Surface({
+var placeholderModifier = new Modifier({
+	align: [0.5, 0.5],
+	origin: [0.5, 0.5]
+});
+var placeholderSurface = new Surface({
+	size: [undefined, true],
 	content: 'No items'
 });
-listView.placeholder.add(noItemsSurface)
+listView.placeholder.add(placeholderModifier).add(placeholderSurface);
 ```
 
-### State classes: first, last, selected
-
-The first and last item in the list-view are automatically given a state-class,
-e.g. for adding rounded corners. Also, when an item is selected or
-de-selected, the state-class is updated on the renderable. If the renderable is
-a `Surface` then it calls `addClass` and `removeClass` on that surface directly.
-The following snippet shows the default state-classes and how you can modify them:
+The show and hide animation can be configured through the following options:
 
 ```javascript
 var listView = new ListView({
-	selectedClass: 'selected',
-	firstClass: 'first',
-	lastClass: 'last'
+	showPlaceholderTransition: {duration: 500},
+	hidePlaceholderTransition: {duration: 500}
 });
 ```
-
-### Inserting views and delegating state-classes
-
-The list-view inspects the renderable and will call `addClass` and `removeClass`
-only if these methods exist. If you insert a `View`, and you want to delegate the
-states to the view, you can add your own `addClass` and `removeClass`:
-
-```javascript
-function _createItem() {
-	var myView = new MyView(); // your-view, e.g. has the method: setSelected
-	var item = new RenderNode(myView);
-	item.addClass = function (cls) {
-		if (cls === 'selected') myView.setSelected(true);
-	};
-	item.removeClass = function (cls) {
-		if (cls === 'selected') myView.setSelected(false);
-	};
-	return item;
-}
-listView.insert(-1, _createItem());
-```
-
 ### Vertical orientation
 
-By default, the listview lays-out its renderables horziontally. To layout
+By default, the listview lays-out its renderables horizontally. To layout
 the renderables vertically, use:
 
 ```javascript
