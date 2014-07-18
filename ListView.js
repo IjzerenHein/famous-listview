@@ -54,12 +54,20 @@ define(function(require, exports, module) {
     };
 
     /**
+     * @enum
+     * @alias module:ListView.ItemState
+     */
+    var ItemState = {
+        SELECTED: 'selected',
+        FIRST: 'first',
+        LAST: 'last'
+    };
+
+    /**
      * @class
      * @param {Object} options Options.
      * @param {Selection} [options.selection] Selection-mode (e.g. Selection.NONE, Selection.SINGLE, Selection.MULTIPLE)
-     * @param {String} [options.selectedClass] State-class that is used for the selection-state (default: 'selected')
-     * @param {String} [options.firstClass] State-class that is used for the first-item-state (default: 'first')
-     * @param {String} [options.lastClass] State-class that is used for the last-item-state (default: 'last')
+     * @param {Function} [options.setItemState] Function that is called whenever an item-state changes (default: ListView.setSurfaceClass)
      * @param {Object} [options.scrollContainer] Options that are passed on to the internal scrollContainer
      * @param {Array.Number} [options.insertSize] Start-size that is used to animate item insertion (default: [undefined, 0])
      * @param {Array.Number} [options.removeSize] End-size that is used to animate item removal (default: [undefined, 0])
@@ -84,9 +92,7 @@ define(function(require, exports, module) {
 
     ListView.DEFAULT_OPTIONS = {
         selection: Selection.SINGLE,
-        selectedClass: 'selected',
-        firstClass: 'first',
-        lastClass: 'last',
+        setItemState: _setSurfaceClass,
         scrollContainer: {
             scrollview: {
                 direction: Utility.Direction.Y
@@ -113,7 +119,7 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Creates a placeholder and rendercontroller for showing/hiding the placeholder
+     * Creates a rendercontroller for showing/hiding the placeholder
      */
     function _createPlaceholder() {
         this._renderController = new RenderController();
@@ -124,7 +130,7 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Shows/hides the placeholder dependent on whether any list-items exist
+     * Shows/hides the placeholder dependent on whether the list is empty
      */
     function _updatePlaceholder() {
         if (this.getCount()) {
@@ -145,7 +151,7 @@ define(function(require, exports, module) {
                 this.setSelection(this._items.indexOf(item), 1, true);
                 break;
             case Selection.MULTIPLE:
-                this.setSelection(this._items.indexOf(item), 1, !item.selected);
+                this.setSelection(this._items.indexOf(item), 1, !item.state.selected); // toggle
                 break;
         }
     }
@@ -157,7 +163,9 @@ define(function(require, exports, module) {
         var item = {
             modifier: new StateModifier({}),
             renderable: renderable,
-            selected: false
+            state: {
+                selected: false
+            }
         }
         item.node = new RenderNode(item.modifier);
         item.node.add(renderable);
@@ -168,13 +176,39 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Set the class for an item.
+     * Default implementation for `options.setItemState` which adds/removes a class
+     * from a surface based on the state. This function effectively sets the
+     * 'first', 'last' and 'selected' classes for the renderable.
+     *
+     * @param {Number} index Index of the item
+     * @param {Renderable} renderable Renderable that was added to the list-view
+     * @param {ItemState|String} state State to set or clear on the renderable
+     * @param {Boolean} set Set or clear the state
      */
-    function _setItemClass(item, cls, add) {
-        if (add) {
-            if (item.renderable.addClass) item.renderable.addClass(cls);
+    ListView.setSurfaceClass = _setSurfaceClass;
+    function _setSurfaceClass(index, renderable, state, set) {
+        if (set) {
+            if (renderable.addClass) renderable.addClass(state);
         } else {
-            if (item.renderable.removeClass) item.renderable.removeClass(cls);
+            if (renderable.removeClass) renderable.removeClass(state);
+        }
+    };
+
+    /**
+     * Set the state for an item
+     */
+    function _setItemState(index, state, add) {
+        var item = this._items[index];
+        if (item.state[state]) {
+            if (!add) {
+                item.state[state] = false;
+                this.options.setItemState(index, item.renderable, state, false);
+                return true;
+            }
+        } else if (add) {
+            item.state[state] = true;
+            this.options.setItemState(index, item.renderable, state, true);
+            return true;
         }
     }
 
@@ -204,23 +238,19 @@ define(function(require, exports, module) {
         if (index < 0) index = this.getCount();
         this._items.splice.apply(this._items, [index, 0].concat(items));
 
-        // update first-class
-        if (index === 0 && this.options.firstClass){
-            var newItem = this._items[0];
-            _setItemClass.call(this, newItem, this.options.firstClass, true);
+        // update first-state
+        if (index === 0){
+            _setItemState.call(this, 0, ItemState.FIRST, true);
             if (this._items.length > items.length) {
-                var oldItem = this._items[items.length];
-                _setItemClass.call(this, oldItem, this.options.firstClass, false);
+                _setItemState.call(this, items.length, ItemState.FIRST, false);
             }
         }
 
-        // update last-class
-        if ((index === (this._items.length - items.length)) && this.options.lastClass) {
-            var newItem = this._items[this._items.length - 1];
-            _setItemClass.call(this, newItem, this.options.lastClass, true);
+        // update last-state
+        if (index === (this._items.length - items.length)) {
+            _setItemState.call(this, this._items.length - 1, ItemState.LAST, true);
             if (this._items.length > items.length) {
-                var oldItem = this._items[this._items.length - (items.length + 1)];
-                _setItemClass.call(this, oldItem, this.options.lastClass, false);
+                _setItemState.call(this, this._items.length - (items.length + 1), ItemState.LAST, false);
             }
         }
 
@@ -317,15 +347,13 @@ define(function(require, exports, module) {
         // remove items
         this._items.splice(index, count);
 
-        // update first- and last-class
+        // update first- and last-state
         if (this._items.length > 0) {
-            if ((index === 0) && this.options.firstClass){
-                var newItem = this._items[0];
-                _setItemClass.call(this, newItem, this.options.firstClass, true);
+            if (index === 0){
+                _setItemState.call(this, 0, ItemState.FIRST, true);
             }
-            if ((index === this._items.length) && this.options.lastClass) {
-                var newItem = this._items[this._items.length - 1];
-                _setItemClass.call(this, newItem, this.options.lastClass, true);
+            if (index === this._items.length) {
+                _setItemState.call(this, this._items.length - 1, ItemState.LAST, true);
             }
         }
 
@@ -372,40 +400,46 @@ define(function(require, exports, module) {
     ListView.prototype.setSelection = function(index, count, selected) {
         if (selected === undefined) selected = true;
         if (count < 0) count = this._items.length - index;
+        var deselect = [];
+        var select = [];
         for (var i = 0 ; i < count; i++) {
-            var item = this._items[index + i];
 
             // unselect
             if (!selected) {
-                if (item.selected) {
-                    item.selected = false;
-                    _setItemClass.call(this, item, this.options.selectedClass, false);
+                if (_setItemState.call(this, index + i, ItemState.SELECTED, false)) {
+                    deselect.push(index + i);
                 }
 
             // multi-select
             } else if (this.options.selection === Selection.MULTIPLE){
-                if (!item.selected) {
-                    item.selected = true;
-                    _setItemClass.call(this, item, this.options.selectedClass, true);
+                if (_setItemState.call(this, index + i, ItemState.SELECTED, true)) {
+                    select.push(index + i);
                 }
 
             // single-select
             } else {
                 for (var j = 0; j < this._items.length; j++) {
-                    var curItem = this._items[j];
-                    if (curItem === item) {
-                        if (!item.selected) {
-                            item.selected = true;
-                            _setItemClass.call(this, item, this.options.selectedClass, true);
+                    if ((index + i) === j) {
+                        if (_setItemState.call(this, j, ItemState.SELECTED, true)) {
+                            select.push(j);
                         }
                     } else {
-                        if (curItem.selected) {
-                            curItem.selected = false;
-                            _setItemClass.call(this, curItem, this.options.selectedClass, false);
+                        if (_setItemState.call(this, j, ItemState.SELECTED, false)) {
+                            deselect.push(j);
                         }
                     }
                 }
             }
+        }
+
+        // emit event
+        if (select.length || deselect.length) {
+            this._eventOutput.emit('selection', {
+                type: 'selection',
+                target: this,
+                select: select,
+                deselect: deselect
+            });
         }
     };
 
@@ -419,7 +453,7 @@ define(function(require, exports, module) {
         var result = [];
         for (var i = 0; i < this._items.length; i++) {
             var item = this._items[i];
-            if (item.selected) {
+            if (item.state.selected) {
                 result.push(indexes ? i : item.renderable);
             }
         }

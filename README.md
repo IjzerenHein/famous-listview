@@ -110,13 +110,25 @@ listView.remove(0, -1, {duration: 3000}, function() {
 The following events are emitted by the view:
 
 ```javascript
+listView.on('selection', function (event) {
+	/* when multiple items selected at once, 'selection' is only emitted once
+	event: {
+		type,     // event-type: 'selection'
+		select,   // array containing the indexes of the newly selected items
+		deselect, // array containing the indexes of the now deselected items
+		target    // listView
+	} */
+});
+```
+
+```javascript
 listView.on('insert', function (event) {
 	/* when multiple items are inserted at once, insert is only emitted once
 	event: {
-		type,  // event-type: 'insert'
-		index, // index of first inserted item
-		count, // number of items that were inserted
-		target // listView
+		type,     // event-type: 'insert'
+		index,    // index of first inserted item
+		count,    // number of items that were inserted
+		target    // listView
 	} */
 });
 ```
@@ -125,10 +137,10 @@ listView.on('insert', function (event) {
 listView.on('remove', function (event) {
 	/* when multiple items are removed at once, remove is only emitted once
 	event: {
-		type,  // event-type: 'remove'
-		index, // index of first removed item
-		count, // number of items that were removed
-		target // listView
+		type,     // event-type: 'remove'
+		index,    // index of first removed item
+		count,    // number of items that were removed
+		target    // listView
 	} */
 });
 ```
@@ -138,8 +150,8 @@ listView.on('remove', function (event) {
 ListView supports 3 selection modes: `Selection.NONE`, `Selection.SINGLE` and
 `Selection.MULTIPLE`. Because the list-view does not inject any own surfaces
 into the render-tree, it utilizes the inserted renderable for capturing the
-`click` event. For selection to function, the renderable must have an
-`.on` function and respond to the `click` event.
+`click` event. **For selection to work, the renderable must have an
+`.on` function and respond to the `click` event.**
 
 By default, the selection-mode is set to **SINGLE**. To change the
 selection-mode use:

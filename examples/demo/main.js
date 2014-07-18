@@ -110,12 +110,13 @@ define(function(require) {
     renderables.push(boxLayout);
 
     // Log events
-    listView.on('insert', function(event) {
-        console.log('[Event: insert] index: ' + event.index + ', count: ' + event.count);
-    });
-    listView.on('remove', function(event) {
-        console.log('[Event: remove] index: ' + event.index + ', count: ' + event.count);
-    });
+    function _logEvent(event) {
+        delete event.target;
+        console.log('[Event] ' + JSON.stringify(event));
+    }
+    listView.on('insert', _logEvent);
+    listView.on('remove', _logEvent);
+    listView.on('selection', _logEvent);
 
     // Create counter
     var counter = new Surface({
@@ -138,35 +139,35 @@ define(function(require) {
 
     // Add actions
     _addAction('Insert top', function(name, callback) {
-        listView.insert(0, _createListItem(name), null, callback);
+        listView.insert(0, _createListItem(name), undefined, callback);
     });
     _addAction('Insert middle', function(name, callback) {
-        listView.insert(Math.floor(listView.getCount() / 2), _createListItem(name), null, callback);
+        listView.insert(Math.floor(listView.getCount() / 2), _createListItem(name), undefined, callback);
     });
     _addAction('Insert bottom', function(name, callback) {
-        listView.insert(-1, _createListItem(name), null, callback);
+        listView.insert(-1, _createListItem(name), undefined, callback);
     });
     _addAction('Insert batch', function(name, callback) {
         var items = [];
         for (var i = 0; i < 10; i++) {
             items.push(_createListItem(name));
         }
-        listView.insert(Math.floor(listView.getCount() / 2), items, null, callback);
+        listView.insert(Math.floor(listView.getCount() / 2), items, undefined, callback);
     });
     _addAction('Insert instant', function(name, callback) {
         listView.insert(0, _createListItem(name), {duration: 0}, callback);
     });
     _addAction('Remove top', function(name, callback) {
-        listView.remove(0, null, null, callback);
+        listView.remove(0, undefined, undefined, callback);
     });
     _addAction('Remove middle', function(name, callback) {
-        listView.remove(Math.floor(listView.getCount() / 2), null, null, callback);
+        listView.remove(Math.floor(listView.getCount() / 2), undefined, undefined, callback);
     });
     _addAction('Remove bottom', function(name, callback) {
-        listView.remove(-1, null, null, callback);
+        listView.remove(-1, undefined, undefined, callback);
     });
     _addAction('Remove All', function(name, callback) {
-        listView.remove(0, listView.getCount(), null, callback);
+        listView.remove(0, listView.getCount(), undefined, callback);
     });
     _addAction('Select All', function() {
         listView.setSelection(0, -1, true);
