@@ -23,7 +23,7 @@ body, div {
     background-color: #313D3C;
 }
 
-.header div, .action div, .listitem div, .placeholder div, .counter div {
+.header div, .action div, .listitem div, .counter div {
     position: relative;
     top: 50%;
     -webkit-transform: translateY(-50%);

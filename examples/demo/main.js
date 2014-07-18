@@ -35,16 +35,21 @@ define(function(require) {
     var RenderNode = require('famous/core/RenderNode');
     var Modifier = require('famous/core/Modifier');
     var Surface = require('famous/core/Surface');
+    var Transform = require('famous/core/Transform');
     var FlexibleLayout = require('famous/views/FlexibleLayout');
     var SequentialLayout = require('famous/views/SequentialLayout');
     var ListView = require('famous-listview');
     var BoxLayout = require('famous-boxlayout');
     var Utility = require('famous/utilities/Utility');
 
+    //
     // create the main context
+    //
     var mainContext = Engine.createContext();
 
+    //
     // create layout
+    //
     var topLayout = new BoxLayout({ margins: [40, 0, 0, 0]});
     mainContext.add(topLayout);
     var renderables = [];
@@ -58,7 +63,9 @@ define(function(require) {
         content: '<div>famous-listview demo</div>'
     }));
 
+    //
     // Create left action-panel
+    //
     var panel = new RenderNode(new Modifier({size: [160, undefined]}));
     renderables.push(panel);
     panel.add(new Surface({classes: ['panel']}));
@@ -94,7 +101,9 @@ define(function(require) {
         });
     }
 
+    //
     // Create listview
+    //
     var boxLayout = new BoxLayout({margins: [30, 0, 0, 0]});
     var listView = new ListView({
         selection: ListView.Selection.MULTIPLE,
@@ -104,12 +113,16 @@ define(function(require) {
                     padding: '10px'
                 }
             }
-        }
+        },
+        insertTransform: Transform.translate(300, 0, 0),
+        removeTransform: Transform.translate(-300, 0, 0)
     });
     boxLayout.middle.add(listView);
     renderables.push(boxLayout);
 
+    //
     // Log events
+    //
     function _logEvent(event) {
         delete event.target;
         console.log('[Event] ' + JSON.stringify(event));
@@ -118,7 +131,9 @@ define(function(require) {
     listView.on('remove', _logEvent);
     listView.on('selection', _logEvent);
 
+    //
     // Create counter
+    //
     var counter = new Surface({
         classes: ['counter']
     });
@@ -130,14 +145,23 @@ define(function(require) {
     listView.on('remove', _updateCounter);
     _updateCounter();
 
-    // Set listview placeholder (is shown when list-view is empty)
-    var placeholder = new Surface({
-        classes: ['placeholder'],
-        content: '<div>No items.<br><br>Use the options on the left to insert items.<br><br>This placeholder automatically disappears when items are added.</div>'
+    //
+    // Set placeholder (is shown when list-view is empty)
+    //
+    var placeholderModifier = new Modifier({
+        align: [0.5, 0.5],
+        origin: [0.5, 0.5]
     });
-    listView.placeholder.add(placeholder);
+    var placeholder = new Surface({
+        size: [undefined, true],
+        classes: ['placeholder'],
+        content: 'No items.<br><br>Use the options on the left to insert items.<br><br>This placeholder automatically disappears when items are added.'
+    });
+    listView.placeholder.add(placeholderModifier).add(placeholder);
 
+    //
     // Add actions
+    //
     _addAction('Insert top', function(name, callback) {
         listView.insert(0, _createListItem(name), undefined, callback);
     });

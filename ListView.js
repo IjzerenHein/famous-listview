@@ -42,6 +42,7 @@ define(function(require, exports, module) {
     var Utility = require('famous/utilities/Utility');
     var RenderController = require('famous/views/RenderController');
     var Easing = require('famous/transitions/Easing');
+    var Transform = require('famous/core/Transform');
 
     /**
      * @enum
@@ -105,6 +106,8 @@ define(function(require, exports, module) {
         showOpacity: 1,
         insertTransition: {duration: 1000, curve: Easing.outExpo},
         removeTransition: {duration: 200, curve: Easing.outExpo},
+        insertTransform: null,
+        removeTransform: null,
         showPlaceholderTransition: {duration: 500},
         hidePlaceholderTransition: {duration: 500}
     };
@@ -276,6 +279,11 @@ define(function(require, exports, module) {
                 item.modifier.setOpacity(this.options.showOpacity, transition, callback);
                 callback = null;
             }
+            if (this.options.insertTransform) {
+                item.modifier.setTransform(this.options.insertTransform);
+                item.modifier.setTransform(Transform.identity, transition, callback);
+                callback = null;
+            }
         }
 
         // TODO - fix the case where items inserted as top shouldn't always scroll to top
@@ -340,6 +348,10 @@ define(function(require, exports, module) {
             }
             if (this.options.removeOpacity !== undefined) {
                 item.modifier.setOpacity(this.options.removeOpacity, transition, callback);
+                callback = null;
+            }
+            if (this.options.removeTransform) {
+                item.modifier.setTransform(this.options.removeTransform, transition, callback);
                 callback = null;
             }
         }
