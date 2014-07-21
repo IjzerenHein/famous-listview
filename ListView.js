@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2014 Gloey Apps
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,11 +31,10 @@
  * @module
  */
 define(function(require, exports, module) {
-    'use strict';
+'use strict';
 
     // import dependencies
     var RenderNode = require('famous/core/RenderNode');
-    var ViewSequence = require('famous/core/ViewSequence');
     var View = require('famous/core/View');
     var StateModifier = require('famous/modifiers/StateModifier');
     var ScrollContainer = require('famous/views/ScrollContainer');
@@ -75,18 +74,20 @@ define(function(require, exports, module) {
      * @param {Number} [options.insertOpacity] Start opacity that is used to animate an item insertion (default: 0)
      * @param {Number} [options.removeOpacity] End opacity that is used to animate an item removal (default: 0)
      * @param {Number} [options.showOpacity] Opacity that is used to show an item (default: 1)
+     * @param {Transform} [options.insertTransform] Transform that is used when inserting an item
+     * @param {Transform} [options.removeTransform] Transform that is used when removing an item
      * @param {Transition} [options.insertTransition] Transition that is used when inserting an item (default: {duration: 1000, curve: Easing.outExpo})
      * @param {Transition} [options.removeTransition] Transition that is used when removing an item (default: {duration: 200, curve: Easing.outExpo})
      * @param {Transition} [options.showPlaceholderTransition] Transition for showing the placeholder (default: {duration: 500})
      * @param {Transition} [options.hidePlaceholderTransition] Transition for hiding the placeholder (default: {duration: 500})
      * @alias module:ListView
      */
-    var ListView = function() {
+    function ListView() {
         View.apply(this, arguments);
 
         _createScrollContainer.call(this);
         _createPlaceholder.call(this);
-    };
+    }
     ListView.prototype = Object.create(View.prototype);
     ListView.prototype.constructor = ListView;
     ListView.Selection = Selection;
@@ -116,7 +117,7 @@ define(function(require, exports, module) {
      * Creates the main scroll-container
      */
     function _createScrollContainer() {
-        this.scrollContainer = new ScrollContainer(this.options.scrollContainer)
+        this.scrollContainer = new ScrollContainer(this.options.scrollContainer);
         this._items = [];
         this.scrollContainer.sequenceFrom([]);
     }
@@ -137,9 +138,16 @@ define(function(require, exports, module) {
      */
     function _updatePlaceholder() {
         if (this.getCount()) {
-            if (this._placeholderVisible) this._renderController.show(this.scrollContainer, this.options.hidePlaceholderTransition);
-        } else {
-            if (this._placeholderVisible) this._renderController.show(this.placeholder, this.options.showPlaceholderTransition);
+            if (this._placeholderVisible) {
+              this._renderController.show(this.scrollContainer, this.options.hidePlaceholderTransition);
+              this._placeholderVisible = false;
+            }
+        }
+        else {
+            if (!this._placeholderVisible) {
+              this._renderController.show(this.placeholder, this.options.showPlaceholderTransition);
+              this._placeholderVisible = true;
+            }
         }
     }
 
@@ -169,11 +177,11 @@ define(function(require, exports, module) {
             state: {
                 selected: false
             }
-        }
+        };
         item.node = new RenderNode(item.modifier);
         item.node.add(renderable);
         if (item.renderable.on) {
-            item.renderable.on('click', _onClickItem.bind(this, item));
+          item.renderable.on('click', _onClickItem.bind(this, item));
         }
         return item;
     }
@@ -191,11 +199,16 @@ define(function(require, exports, module) {
     ListView.setSurfaceClass = _setSurfaceClass;
     function _setSurfaceClass(index, renderable, state, set) {
         if (set) {
-            if (renderable.addClass) renderable.addClass(state);
-        } else {
-            if (renderable.removeClass) renderable.removeClass(state);
+            if (renderable.addClass) {
+                renderable.addClass(state);
+            }
         }
-    };
+        else {
+            if (renderable.removeClass) {
+                renderable.removeClass(state);
+            }
+        }
+    }
 
     /**
      * Set the state for an item
@@ -226,19 +239,25 @@ define(function(require, exports, module) {
     ListView.prototype.insert = function(index, renderable, transition, callback) {
 
         // create items
+        var i;
         var items = [];
         if (renderable instanceof Array) {
-            if (renderable.length === 0) return;
-            for (var i = 0; i < renderable.length; i++) {
+            if (renderable.length === 0) {
+                return;
+            }
+            for (i = 0; i < renderable.length; i++) {
                 items.push(_createItem.call(this, renderable[i]));
             }
-        } else {
+        }
+        else {
             items.push(_createItem.call(this, renderable));
         }
 
         // add to _items
         // http://stackoverflow.com/questions/7032550/javascript-insert-an-array-inside-another-array
-        if (index < 0) index = this.getCount();
+        if (index < 0) {
+            index = this.getCount();
+        }
         this._items.splice.apply(this._items, [index, 0].concat(items));
 
         // update first-state
@@ -259,14 +278,14 @@ define(function(require, exports, module) {
 
         // add items to scroll-container
         var nodes = [];
-        for (var i = 0; i < this._items.length; i++) {
+        for (i = 0; i < this._items.length; i++) {
             nodes.push(this._items[i].node);
         }
         this.scrollContainer.sequenceFrom(nodes);
 
         // perform show animation
         transition = transition || this.options.insertTransition;
-        for (var i = 0; i < items.length; i++) {
+        for (i = 0; i < items.length; i++) {
             var item = items[i];
             item.modifier.halt();
             if (this.options.insertSize) {
@@ -313,7 +332,9 @@ define(function(require, exports, module) {
         });
 
         // do callback
-        if (callback) callback();
+        if (callback) {
+            callback();
+        }
     };
 
     /**
@@ -327,19 +348,24 @@ define(function(require, exports, module) {
     ListView.prototype.remove = function(index, count, transition, callback) {
 
         // check arguments
-        if (count === 0) return;
-        if (index < 0) index = this.getCount() - 1;
+        if (count === 0) {
+            return;
+        }
+        if (index < 0) {
+            index = this.getCount() - 1;
+        }
         count = (count === undefined) ? 1 : count;
 
         // get the items to remove
         var items = [];
-        for (var i = 0; i < count; i++) {
+        var i;
+        for (i = 0; i < count; i++) {
             items.push(this._items[i+index]);
         }
 
         // perform hide animation
         transition = transition || this.options.removeTransition;
-        for (var i = 0; i < items.length; i++) {
+        for (i = 0; i < items.length; i++) {
             var item = items[i];
             item.modifier.halt();
             if (this.options.removeSize) {
@@ -359,9 +385,9 @@ define(function(require, exports, module) {
         // remove items
         this._items.splice(index, count);
 
-        // update first- and last-state
+// update first- and last-state
         if (this._items.length > 0) {
-            if (index === 0){
+            if (index === 0) {
                 _setItemState.call(this, 0, ItemState.FIRST, true);
             }
             if (index === this._items.length) {
@@ -381,7 +407,9 @@ define(function(require, exports, module) {
         });
 
         // do callback
-        if (callback) callback();
+        if (callback) {
+            callback();
+        }
     };
 
     /**
@@ -410,11 +438,17 @@ define(function(require, exports, module) {
      * @param {Boolean} [selected] select or de-select (when omitted, true is assumed)
      */
     ListView.prototype.setSelection = function(index, count, selected) {
-        if (selected === undefined) selected = true;
-        if (count < 0) count = this._items.length - index;
+        if (selected === undefined) {
+            selected = true;
+        }
+        if (count < 0) {
+            count = this._items.length - index;
+        }
         var deselect = [];
         var select = [];
-        for (var i = 0 ; i < count; i++) {
+        var i;
+        var j;
+        for (i = 0 ; i < count; i++) {
 
             // unselect
             if (!selected) {
@@ -423,19 +457,22 @@ define(function(require, exports, module) {
                 }
 
             // multi-select
-            } else if (this.options.selection === Selection.MULTIPLE){
+            }
+            else if (this.options.selection === Selection.MULTIPLE) {
                 if (_setItemState.call(this, index + i, ItemState.SELECTED, true)) {
                     select.push(index + i);
                 }
 
             // single-select
-            } else {
-                for (var j = 0; j < this._items.length; j++) {
+            }
+            else {
+                for (j = 0; j < this._items.length; j++) {
                     if ((index + i) === j) {
                         if (_setItemState.call(this, j, ItemState.SELECTED, true)) {
                             select.push(j);
                         }
-                    } else {
+                    }
+                    else {
                         if (_setItemState.call(this, j, ItemState.SELECTED, false)) {
                             deselect.push(j);
                         }

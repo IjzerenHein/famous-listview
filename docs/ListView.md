@@ -1,4 +1,3 @@
-
 <a name="module_ListView"></a>
 #ListView
 ListView extends famo.us ScrollContainer with insert/remove animations, selection (single/multiple) and support for a placeholder.
@@ -7,23 +6,16 @@ ListView extends famo.us ScrollContainer with insert/remove animations, selectio
 ##class: ListView ⏏
 **Members**
 
-* [class: ListView ⏏](#module_ListView)
-  * [new ListView(options)](#module_ListView)
-  * [enum: ListView.Selection](#module_ListView.Selection)
-    * [module:ListView.Selection.NONE](#module_ListView.Selection.NONE)
-    * [module:ListView.Selection.SINGLE](#module_ListView.Selection.SINGLE)
-    * [module:ListView.Selection.MULTIPLE](#module_ListView.Selection.MULTIPLE)
-  * [enum: ListView.ItemState](#module_ListView.ItemState)
-    * [module:ListView.ItemState.SELECTED](#module_ListView.ItemState.SELECTED)
-    * [module:ListView.ItemState.FIRST](#module_ListView.ItemState.FIRST)
-    * [module:ListView.ItemState.LAST](#module_ListView.ItemState.LAST)
-  * [ListView.setSurfaceClass](#module_ListView.setSurfaceClass)
-  * [listView.insert(index, renderable, [transition], [callback])](#module_ListView#insert)
-  * [listView.remove(index, [count], [transition], [callback])](#module_ListView#remove)
-  * [listView.getCount()](#module_ListView#getCount)
-  * [listView.get(index)](#module_ListView#get)
-  * [listView.setSelection(index, [count], [selected])](#module_ListView#setSelection)
-  * [listView.getSelection([indexes])](#module_ListView#getSelection)
+* [new ListView(options)](#module_ListView)
+* [listView.insert(index, renderable, [transition], [callback])](#module_ListView#insert)
+* [listView.remove(index, [count], [transition], [callback])](#module_ListView#remove)
+* [listView.getCount()](#module_ListView#getCount)
+* [listView.get(index)](#module_ListView#get)
+* [listView.setSelection(index, [count], [selected])](#module_ListView#setSelection)
+* [listView.getSelection([indexes])](#module_ListView#getSelection)
+* [enum: ListView.Selection](#module_ListView.Selection)
+* [enum: ListView.ItemState](#module_ListView.ItemState)
+* [ListView.setSurfaceClass](#module_ListView.setSurfaceClass)
 
 <a name="module_ListView"></a>
 ###new ListView(options)
@@ -38,29 +30,12 @@ ListView extends famo.us ScrollContainer with insert/remove animations, selectio
   - [insertOpacity] `Number` - Start opacity that is used to animate an item insertion (default: 0)
   - [removeOpacity] `Number` - End opacity that is used to animate an item removal (default: 0)
   - [showOpacity] `Number` - Opacity that is used to show an item (default: 1)
+  - [insertTransform] `Transform` - Transform that is used when inserting an item
+  - [removeTransform] `Transform` - Transform that is used when removing an item
   - [insertTransition] `Transition` - Transition that is used when inserting an item (default: {duration: 1000, curve: Easing.outExpo})
   - [removeTransition] `Transition` - Transition that is used when removing an item (default: {duration: 200, curve: Easing.outExpo})
   - [showPlaceholderTransition] `Transition` - Transition for showing the placeholder (default: {duration: 500})
   - [hidePlaceholderTransition] `Transition` - Transition for hiding the placeholder (default: {duration: 500})
-
-<a name="module_ListView.Selection"></a>
-###enum: ListView.Selection
-**Properties**: `NONE`, `SINGLE`, `MULTIPLE`  
-<a name="module_ListView.ItemState"></a>
-###enum: ListView.ItemState
-**Properties**: `SELECTED`, `FIRST`, `LAST`  
-<a name="module_ListView.setSurfaceClass"></a>
-###ListView.setSurfaceClass
-Default implementation for options.setItemState which adds/removes a class
-from a surface based on the state. This function effectively sets the
-'first', 'last' and 'selected' classes for the renderable.
-
-**Params**
-
-- index `Number` - Index of the item
-- renderable `Renderable` - Renderable that was added to the list-view
-- state `ItemState` | `String` - State to set or clear on the renderable
-- set `Boolean` - Set or clear the state
 
 <a name="module_ListView#insert"></a>
 ###listView.insert(index, renderable, [transition], [callback])
@@ -117,4 +92,22 @@ Get all selected items
 - [indexes] `Number` - When set to true, returns the index rather than the renderable
 
 **Returns**: `Array` - array of renderables (or indexes)  
+<a name="module_ListView.Selection"></a>
+###enum: ListView.Selection
+**Properties**: `NONE`, `SINGLE`, `MULTIPLE`  
+<a name="module_ListView.ItemState"></a>
+###enum: ListView.ItemState
+**Properties**: `SELECTED`, `FIRST`, `LAST`  
+<a name="module_ListView.setSurfaceClass"></a>
+###ListView.setSurfaceClass
+Default implementation for `options.setItemState` which adds/removes a class
+from a surface based on the state. This function effectively sets the
+'first', 'last' and 'selected' classes for the renderable.
+
+**Params**
+
+- index `Number` - Index of the item
+- renderable `Renderable` - Renderable that was added to the list-view
+- state `ItemState` | `String` - State to set or clear on the renderable
+- set `Boolean` - Set or clear the state
 

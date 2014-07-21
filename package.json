@@ -5,7 +5,7 @@
   "author": {
     "name": "Hein Rutjes <hrutjes@gmail.com>"
   },
-  "description": "TODO",
+  "description": "Famous-listview extends famo.us ScrollContainer with insert/remove animations, selection (single/multiple) and support for a placeholder",
   "keywords": [
     "famo.us",
     "famous",
@@ -29,9 +29,8 @@
   },
   "devDependencies": {
     "grunt": "latest",
-    "grunt-contrib-eslint": "0.0.4",
-    "grunt-contrib-jscs": "^0.1.8",
-    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-eslint": "latest",
+    "grunt-contrib-jscs": "latest",
     "grunt-contrib-qunit": "latest",
     "grunt-contrib-watch": "latest",
     "grunt-jsdoc-to-markdown": "latest"

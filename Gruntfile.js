@@ -3,15 +3,14 @@ module.exports = function(grunt) {
 
   // Project configuration.
   grunt.initConfig({
-    // Task configuration.
     eslint: {
+      target: ['*.js'],
       options: {
         config: '.eslintrc'
       }
-      //target: ['<%= config.app %>/src/**/**.js']
     },
     jscs: {
-        //src: ['<%= config.app %>/src/**/**.js', 'Gruntfile.js'],
+        src: ['*.js'],
         options: {
             config: '.jscsrc'
         }
