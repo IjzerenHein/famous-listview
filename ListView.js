@@ -24,7 +24,7 @@
  * @copyright Gloey Apps, 2014
  */
 
-/*global define*/
+/*global define, console*/
 
 /**
  * ListView extends famo.us ScrollContainer with insert/remove animations, selection (single/multiple) and support for a placeholder.
@@ -35,6 +35,7 @@ define(function(require, exports, module) {
 
     // import dependencies
     var RenderNode = require('famous/core/RenderNode');
+    //var Modifier = require('famous/core/Modifier');
     var View = require('famous/core/View');
     var StateModifier = require('famous/modifiers/StateModifier');
     var ScrollContainer = require('famous/views/ScrollContainer');
@@ -87,6 +88,7 @@ define(function(require, exports, module) {
 
         _createScrollContainer.call(this);
         _createPlaceholder.call(this);
+        //_createSelectionOverlay.call(this);
     }
     ListView.prototype = Object.create(View.prototype);
     ListView.prototype.constructor = ListView;
@@ -100,17 +102,48 @@ define(function(require, exports, module) {
                 direction: Utility.Direction.Y
             }
         },
+        itemModifier: {
+            align: [0.0, 0.0],
+            origin: [0.0, 0.0]
+        },
+        // expand/collapse size & transitions
         insertSize: [undefined, 0],
         removeSize: [undefined, 0],
+        insertSizeTransition: {duration: 300, curve: Easing.outCirc},
+        removeSizeTransition: {duration: 200, curve: Easing.outExpo},
+        // show/hide opacity & transitions
         insertOpacity: 0,
         removeOpacity: 0,
         showOpacity: 1,
-        insertTransition: {duration: 1000, curve: Easing.outExpo},
-        removeTransition: {duration: 200, curve: Easing.outExpo},
+        insertOpacityTransition: {duration: 300, curve: Easing.inQuad},
+        removeOpacityTransition: {duration: 200, curve: Easing.outQuad},
+        // transforms & transitions
         insertTransform: null,
         removeTransform: null,
+        showTransform: null,
+        insertTransformTransition: {duration: 500, curve: Easing.outQuad},
+        removeTransformTransition: {duration: 500, curve: Easing.inQuad},
+        // placeholder transitions
         showPlaceholderTransition: {duration: 500},
         hidePlaceholderTransition: {duration: 500}
+    };
+
+    /**
+     *  Set internal options.
+     *
+     *  @param {Object} options
+     */
+    ListView.prototype.setOptions = function setOptions(options) {
+        this._optionsManager.patch(options);
+        if (this.scrollContainer) {
+            this.scrollContainer.setOptions(this.options.scrollContainer);
+
+            // workaround for ScrollContainer.setOptions not delegating the options
+            // to container and scrollview.
+            // https://github.com/Famous/views/issues/78
+            this.scrollContainer.container.setOptions(this.scrollContainer.options.container);
+            this.scrollContainer.scrollview.setOptions(this.scrollContainer.options.scrollview);
+        }
     };
 
     /**
@@ -132,6 +165,75 @@ define(function(require, exports, module) {
         this._renderController.show(this.placeholder, {duration: 0});
         this._placeholderVisible = true;
     }
+
+    /**
+     * Creates a modifier for the selection overlay.
+     * Requires brain-juice... work in progress
+     */
+    /*function _createSelectionOverlay() {
+        this.selectionOverlayModifier = new Modifier({
+            size: function() {
+                var selection = this.getSelection(true);
+                if (selection && selection.length) {
+                    var size = this.getItemSize(selection[0]);
+                    return size;
+                }
+                else {
+                    return [0, 0];
+                }
+            }.bind(this),
+            transform: function() {
+                var selection = this.getSelection(true);
+                if (selection && selection.length) {
+                    var pos = this.getItemPosition(selection[0]);
+                    return Transform.translate(0, pos.y);
+                }
+                else {
+                    return null;
+                }
+            }.bind(this)
+        });
+        this.selectionOverlay = new RenderNode(this.selectionOverlayModifier);
+        this.add(this.selectionOverlay);
+    }*/
+
+    /**
+     * Get the rect of the given item.
+     */
+    /*ListView.prototype.getItemPosition = function(index) {
+        var position = this.scrollContainer.scrollview.getPosition();
+        var node = this.scrollContainer.scrollview._node;
+        var nodeSize;
+        var pos = {
+            x: 0,
+            y: -position
+        };
+        while (index < node.getIndex()) {
+            nodeSize = node.getSize();
+            pos.y -= nodeSize[1];
+            node = node.getPrevious();
+        }
+        while (index > node.getIndex()) {
+            nodeSize = node.getSize();
+            pos.y += nodeSize[1];
+            node = node.getNext();
+        }
+        return pos;
+    };*/
+
+    /**
+     * Get the rect of the given item.
+     */
+    /*ListView.prototype.getItemSize = function(index) {
+        var node = this.scrollContainer.scrollview._node;
+        while (index < node.getIndex()) {
+            node = node.getPrevious();
+        }
+        while (index > node.getIndex()) {
+            node = node.getNext();
+        }
+        return node.getSize(true);
+    };*/
 
     /**
      * Shows/hides the placeholder dependent on whether the list is empty
@@ -172,7 +274,7 @@ define(function(require, exports, module) {
      */
     function _createItem(renderable) {
         var item = {
-            modifier: new StateModifier({}),
+            modifier: new StateModifier(this.options.itemModifier),
             renderable: renderable,
             state: {
                 selected: false
@@ -233,10 +335,10 @@ define(function(require, exports, module) {
      *
      * @param {Number} index Index of the item to insert the item before (when -1 is specified, inserts at the tail)
      * @param {Renderable|Array} renderable One or more renderables to insert
-     * @param {Transition} [transition] Transition to use for the animation (when omitted, options.insertTransition is used)
+     * @param {Object} [transitions] Transitions to use for the animation
      * @param {Function} [callback] Function that is called upon completion (e.g. after animation)
      */
-    ListView.prototype.insert = function(index, renderable, transition, callback) {
+    ListView.prototype.insert = function(index, renderable, transitions, callback) {
 
         // create items
         var i;
@@ -284,23 +386,25 @@ define(function(require, exports, module) {
         this.scrollContainer.sequenceFrom(nodes);
 
         // perform show animation
-        transition = transition || this.options.insertTransition;
+        var sizeTransition = (transitions && transitions.size) ? transitions.size : this.options.insertSizeTransition;
+        var opacityTransition = (transitions && transitions.opacity) ? transitions.opacity : this.options.insertOpacityTransition;
+        var transformTransition = (transitions && transitions.transform) ? transitions.transform : this.options.insertTransformTransition;
         for (i = 0; i < items.length; i++) {
             var item = items[i];
             item.modifier.halt();
             if (this.options.insertSize) {
                 item.modifier.setSize(this.options.insertSize);
-                item.modifier.setSize(item.renderable.getSize(), transition, callback);
+                item.modifier.setSize(item.renderable.getSize(), sizeTransition, callback);
                 callback = null;
             }
             if ((this.options.showOpacity !== undefined) && (this.options.insertOpacity !== undefined)) {
                 item.modifier.setOpacity(this.options.insertOpacity);
-                item.modifier.setOpacity(this.options.showOpacity, transition, callback);
+                item.modifier.setOpacity(this.options.showOpacity, opacityTransition, callback);
                 callback = null;
             }
-            if (this.options.insertTransform) {
-                item.modifier.setTransform(this.options.insertTransform);
-                item.modifier.setTransform(Transform.identity, transition, callback);
+            if (this.options.showTransform || this.options.insertTransform) {
+                item.modifier.setTransform(this.options.insertTransform || Transform.identity);
+                item.modifier.setTransform(this.options.showTransform || Transform.identity, transformTransition, callback);
                 callback = null;
             }
         }
@@ -342,10 +446,10 @@ define(function(require, exports, module) {
      *
      * @param {Number} index Index of the item to remove (when -1 is specified, removes the last-items)
      * @param {Number} [count] Number of items to process, starting from index
-     * @param {Transition} [transition] Transition to use for the animation (when omitted, options.removeTransition is used)
+     * @param {Object} [transitions] Transition to use for the animation
      * @param {Function} [callback] Function that is called upon completion (e.g. after animation)
      */
-    ListView.prototype.remove = function(index, count, transition, callback) {
+    ListView.prototype.remove = function(index, count, transitions, callback) {
 
         // check arguments
         if (count === 0) {
@@ -364,20 +468,22 @@ define(function(require, exports, module) {
         }
 
         // perform hide animation
-        transition = transition || this.options.removeTransition;
+        var sizeTransition = (transitions && transitions.size) ? transitions.size : this.options.removeSizeTransition;
+        var opacityTransition = (transitions && transitions.opacity) ? transitions.opacity : this.options.removeOpacityTransition;
+        var transformTransition = (transitions && transitions.transform) ? transitions.transform : this.options.removeTransformTransition;
         for (i = 0; i < items.length; i++) {
             var item = items[i];
             item.modifier.halt();
             if (this.options.removeSize) {
-                item.modifier.setSize(this.options.removeSize, transition, callback);
+                item.modifier.setSize(this.options.removeSize, sizeTransition, callback);
                 callback = null;
             }
             if (this.options.removeOpacity !== undefined) {
-                item.modifier.setOpacity(this.options.removeOpacity, transition, callback);
+                item.modifier.setOpacity(this.options.removeOpacity, opacityTransition, callback);
                 callback = null;
             }
             if (this.options.removeTransform) {
-                item.modifier.setTransform(this.options.removeTransform, transition, callback);
+                item.modifier.setTransform(this.options.removeTransform, transformTransition, callback);
                 callback = null;
             }
         }
@@ -385,7 +491,7 @@ define(function(require, exports, module) {
         // remove items
         this._items.splice(index, count);
 
-// update first- and last-state
+        // update first- and last-state
         if (this._items.length > 0) {
             if (index === 0) {
                 _setItemState.call(this, 0, ItemState.FIRST, true);

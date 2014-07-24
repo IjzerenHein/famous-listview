@@ -24,7 +24,8 @@
  * @copyright Gloey Apps, 2014
  */
 
-/*global define*/
+/*global define, Please, console*/
+/*eslint no-console:0*/
 
 define(function(require) {
     'use strict';
@@ -35,12 +36,13 @@ define(function(require) {
     var RenderNode = require('famous/core/RenderNode');
     var Modifier = require('famous/core/Modifier');
     var Surface = require('famous/core/Surface');
+    var Utility = require('famous/utilities/Utility');
     var Transform = require('famous/core/Transform');
+    var Easing = require('famous/transitions/Easing');
     var FlexibleLayout = require('famous/views/FlexibleLayout');
     var SequentialLayout = require('famous/views/SequentialLayout');
     var ListView = require('famous-listview');
     var BoxLayout = require('famous-boxlayout');
-    var Utility = require('famous/utilities/Utility');
 
     //
     // create the main context
@@ -90,35 +92,103 @@ define(function(require) {
         action.add(surface);
         panelActions.push(action);
     }
+
+    //
+    // Item creation
+    //
+    var direction = Utility.Direction.Y;
     function _createListItem(name) {
-        return new Surface({
-            size: [undefined, 40],
-            classes: ['listitem'],
-            content: '<div>' + name + '</div>',
-            properties: {
-                background: Please.make_color()
-            }
-        });
+        if (direction === Utility.Direction.Y) {
+            return new Surface({
+                size: [undefined, 40],
+                classes: ['listitem', 'direction-y'],
+                content: '<div>' + name + '</div>',
+                properties: {
+                    background: Please.make_color()
+                }
+            });
+        }
+        else {
+            return new Surface({
+                size: [60, undefined],
+                classes: ['listitem', 'direction-x'],
+                content: '<div>' + name + '</div>',
+                properties: {
+                    background: Please.make_color()
+                }
+            });
+        }
     }
 
     //
     // Create listview
     //
     var boxLayout = new BoxLayout({margins: [30, 0, 0, 0]});
-    var listView = new ListView({
-        selection: ListView.Selection.MULTIPLE,
-        scrollContainer: {
-            container: {
-                properties: {
-                    padding: '10px'
-                }
-            }
-        },
-        insertTransform: Transform.translate(300, 0, 0),
-        removeTransform: Transform.translate(-300, 0, 0)
-    });
+    var listView = new ListView();
     boxLayout.middle.add(listView);
     renderables.push(boxLayout);
+
+    function _setDefaults() {
+        direction = Utility.Direction.Y;
+        listView.setOptions({
+            scrollContainer: {
+                container: {
+                    properties: {
+                        padding: '10px'
+                    }
+                },
+                scrollview: {
+                    direction: direction
+                }
+            },
+            insertSize: [undefined, 0], // start of animation when inserting
+            removeSize: [undefined, 0]  // end of animation when removing
+        });
+        listView.remove(0, -1);
+    }
+    function _setXOrientation() {
+        direction = Utility.Direction.X;
+        listView.setOptions({
+            scrollContainer: {
+                container: {
+                    properties: {
+                        padding: '10px'
+                    }
+                },
+                scrollview: {
+                    direction: direction
+                }
+            },
+            insertSize: [0, undefined], // start of animation when inserting
+            removeSize: [0, undefined]  // end of animation when removing
+        });
+        listView.remove(0, -1);
+    }
+    function _setSlideIn() {
+        direction = Utility.Direction.Y;
+        listView.setOptions({
+            scrollContainer: {
+                container: {
+                    properties: {
+                        padding: '10px'
+                    }
+                },
+                scrollview: {
+                    direction: direction
+                }
+            },
+            insertSize: [undefined, 0], // start of animation when inserting
+            removeSize: [undefined, 0], // end of animation when removing
+            insertTransform: Transform.translate(300, 0, 0),
+            removeTransform: Transform.translate(-300, 0, 0),
+            insertTransformTransition: {duration: 400, curve: Easing.outCubic},
+            removeTransformTransition: {duration: 400, curve: Easing.inCubic}
+        });
+        listView.remove(0, -1);
+    }
+    _setDefaults();
+    _setXOrientation();
+    _setSlideIn();
 
     //
     // Log events
@@ -158,6 +228,16 @@ define(function(require) {
         content: 'No items.<br><br>Use the options on the left to insert items.<br><br>This placeholder automatically disappears when items are added.'
     });
     listView.placeholder.add(placeholderModifier).add(placeholder);
+
+    //
+    // Set selection overlay
+    //
+    if (listView.selectionOverlay) {
+        var selectionOverlay = new Surface({
+            classes: ['selection']
+        });
+        listView.selectionOverlay.add(selectionOverlay);
+    }
 
     //
     // Add actions

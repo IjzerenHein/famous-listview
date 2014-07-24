@@ -46,10 +46,10 @@ var ListView = require('famous-listview');
 var listView = new ListView();
 this.add(listView);
 
-// insert items
-listView.insert(0, new Surface({ content: 'one' }));
-listView.insert(1, new Surface({ content: 'two' }));
-listView.insert(-1, new Surface({ content: 'three' }))); // -1 => appends at tail
+// insert items with height 40
+listView.insert(0, new Surface({ size: [undefined, 40], content: 'one' }));
+listView.insert(1, new Surface({ size: [undefined, 40], content: 'two' }));
+listView.insert(-1, new Surface({ size: [undefined, 40], content: 'three' }))); // -1 => appends at tail
 
 // handle selection events
 listView.on('selection', function (event){
@@ -66,7 +66,7 @@ listView.on('selection', function (event){
 - [Views, surfaces and state-delegation](#views-surfaces-and-state-delegation)
 - [Animations](#animations)
 - [Placeholder to show when list is empty](#placeholder-to-show-when-list-is-empty)
-- [Vertical orientation](#vertical-orientation)
+- [Orientation](#orientation)
 - [Setting internal margins](#setting-internal-margins)
 - [API Reference](docs/ListView.md)
 - [Options](docs/ListView.md#module_ListView)
@@ -211,15 +211,26 @@ The insert and delete animations can be configured using the options:
 
 ```javascript
 var listView = new ListView({
-	insertSize: [undefined, 0],                                // start of size when inserting
-	removeSize: [undefined, 0]                                 // end of size when removing
-	insertOpacity: 0,                                          // start of the opacity when inserting
-	removeOpacity: 0,                                          // end of the opacity when removing
-	showOpacity: 1,                                            // opacity after insert
-	insertTransform: Transform.translate(300, 0, 0),           // start transform when inserting
-	removeTransform: Transform.translate(-300, 0, 0)           // end transform when removing
-	insertTransition: {duration: 1000, curve: Easing.outExpo}, // insert-transition
-	removeTransition: {duration: 200, curve: Easing.outExpo}   // remove-transition
+
+	// expand/collapse size
+	insertSize: [undefined, 0],                                       // start of size when inserting
+	removeSize: [undefined, 0]                                        // end of size when removing
+	insertSizeTransition: {duration: 300, curve: Easing.outCirc},     // size-transition used when inserting
+	removeSizeTransition: {duration: 200, curve: Easing.outExpo},     // size-transition used when removing
+
+	// opacity show & hide
+	showOpacity: 1,                                                   // opacity after insert
+	insertOpacity: 0,                                                 // start of the opacity when inserting
+	removeOpacity: 0,                                                 // end of the opacity when removing
+	insertOpacityTransition: {duration: 300, curve: Easing.inQuad},   // opacity-transition used when inserting
+	removeOpacityTransition: {duration: 200, curve: Easing.outQuad},  // opacity-transition used when inserting
+
+	// transform (example below shows a slide-in effect)
+	showTransform: null,                                              // transform after insert
+	insertTransform: Transform.translate(300, 0, 0),                  // start transform when inserting
+	removeTransform: Transform.translate(-300, 0, 0)                  // end transform when removing
+	insertTransformTransition: {duration: 500, curve: Easing.outQuad},// transform-transition used when inserting
+	removeTransformTransition: {duration: 500, curve: Easing.inQuad}, // transform-transition used when removing
 };
 ```
 
@@ -248,10 +259,10 @@ var listView = new ListView({
 	hidePlaceholderTransition: {duration: 500}
 });
 ```
-### Vertical orientation
+### Orientation
 
-By default, the listview lays-out its renderables horizontally. To layout
-the renderables vertically, use:
+By default, the listview lays-out its renderables from top to bottom. To layout
+the renderables from left to right use:
 
 ```javascript
 var listView = new ListView({
@@ -263,6 +274,14 @@ var listView = new ListView({
 	insertSize: [0, undefined], // start of animation when inserting
 	removeSize: [0, undefined]  // end of animation when removing
 });
+```
+
+And the renderable that is added to the ListView must have its width defined:
+
+```javascript
+listView.insert(new Surface({
+	size: [40, undefined]
+}));
 ```
 
 ### Setting internal margins

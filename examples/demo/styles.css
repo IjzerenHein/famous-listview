@@ -1,5 +1,5 @@
 body, div {
-    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: bold;
 }
 
@@ -19,7 +19,7 @@ body, div {
     padding-left: 20px;
 }
 
-.action:hover { 
+.action:hover {
     background-color: #313D3C;
 }
 
@@ -27,9 +27,11 @@ body, div {
     position: relative;
     top: 50%;
     -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
-    pointer-events: none;   
+    pointer-events: none;
 }
 
 .placeholder {
@@ -44,24 +46,39 @@ body, div {
     padding-right: 20px;
 }
 
+.selection {
+    z-index: 10;
+    background-color: rgb(0, 0, 200);
+    background-color: rgba(0, 0, 200, 0.5);
+    pointer-events: none;
+    margin: 10px;
+}
 .listitem {
     text-align: center;
     color: white;
 }
 .listitem:hover {
+    color: white;
     color: rgba(255, 255, 255, 0.3);
 }
 .listitem.selected {
-    text-shadow: 0px 0px 4px rgba(255, 255, 255, 1);
+    text-shadow: 0 0 4px rgba(255, 255, 255, 1);
     color: white;
 }
-.listitem.first {
+.listitem.direction-y.first {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
 }
-.listitem.last {
+.listitem.direction-y.last {
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    box-shadow: 0px 3px 3px #AAAAAA;
+    box-shadow: 0 3px 3px #AAAAAA;
 }
-
+.listitem.direction-x.first {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+.listitem.direction-x.last {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
