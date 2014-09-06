@@ -93,6 +93,7 @@ define(function(require, exports, module) {
     ListView.prototype = Object.create(View.prototype);
     ListView.prototype.constructor = ListView;
     ListView.Selection = Selection;
+    ListView.ItemState = ItemState;
 
     ListView.DEFAULT_OPTIONS = {
         selection: Selection.SINGLE,
