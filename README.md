@@ -1,14 +1,12 @@
 famous-listview
 ==========
 
+### *This project is no longer actively maintained. A new project called [famous-flex](https://github.com/IjzerenHein/famous-flex) was started which contains the more powerful [FlexScrollView](https://github.com/IjzerenHein/famous-flex/blob/master/tutorials/FlexScrollView.md) and much more features.*
+
 famous-listview is a fully customizable list-view which extends famo.us ScrollContainer with:
 * insert/remove animations
 * selection state (single / multiple)
 * showing a placeholder when the list is empty
-
-*Development on famous-listview is ongoing, drop me an email or submit a request
-if you feel something is missing or not working. Please star this project to
-support it.*
 
 ![Screenshot](screenshot.gif)
 
